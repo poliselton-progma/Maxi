@@ -4,185 +4,262 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111111">
-<title>Калькулятор — профильная труба</title>
+<title>Калькулятор окраски</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#f2f2f7}
 *{box-sizing:border-box}
 body{margin:0}
 .wrap{max-width:620px;margin:auto;padding:18px 14px 40px}
-h1{font-size:28px;line-height:1.12;margin:8px 4px 6px;letter-spacing:-.7px}
-.sub{color:#777;font-size:14px;margin:0 4px 18px}
+h1{font-size:26px;line-height:1.15;margin:8px 4px 6px;letter-spacing:-.6px}
+.sub{color:#777;font-size:14px;margin:0 4px 16px}
 .card{background:#fff;border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 2px 12px #0000000b}
 .label{font-size:13px;color:#777;margin-bottom:6px}
 input,select{width:100%;border:1px solid #ddd;border-radius:13px;padding:14px;font-size:17px;outline:none;background:#fff;color:#111}
 input:focus,select:focus{border-color:#777}
-.row{display:grid;grid-template-columns:1.05fr .95fr;gap:10px;align-items:end;margin-top:12px}
-.btns{display:flex;gap:10px;margin-top:14px}
-button{border:0;border-radius:14px;padding:14px;font-size:16px;font-weight:700;cursor:pointer}
-.primary{background:#111;color:#fff;flex:1}
-.secondary{background:#e7e7eb;color:#111;flex:1}
-.result{display:grid;gap:10px;margin-top:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end;margin-top:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:end;margin-top:12px}
+.btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+button{border:0;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer}
+.primary{background:#111;color:#fff;flex:1;min-width:120px}
+.secondary{background:#e7e7eb;color:#111;flex:1;min-width:120px}
 .stat{background:#f6f6f8;border-radius:14px;padding:13px 14px}
-.stat .v{font-size:24px;font-weight:800;margin-top:2px}
+.stat .v{font-size:22px;font-weight:800;margin-top:2px}
 .total{background:#111;color:#fff;border-radius:16px;padding:16px;margin-top:14px}
-.total .v{font-size:36px;font-weight:850;letter-spacing:-1px;margin-top:2px}
+.total .v{font-size:34px;font-weight:850;letter-spacing:-1px;margin-top:2px}
 .total .small{color:#bbb}
 .small{font-size:12px;color:#777;margin-top:8px;line-height:1.4}
 .item{border:1px solid #e5e5e7;border-radius:16px;padding:14px;margin-top:11px}
 .item-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
-.item-title{font-size:16px;font-weight:750}
-.remove{background:#fff0f0;color:#b00020;padding:9px 11px;border-radius:11px;font-size:13px}
-.rate{font-size:13px;color:#777;margin-top:8px}
-.rate strong{color:#111}
+.item-title{font-size:15px;font-weight:750}
+.remove{background:#fff0f0;color:#b00020;padding:8px 11px;border-radius:11px;font-size:13px}
+.rate-line{font-size:13px;color:#777;margin-top:8px}
+.rate-line strong{color:#111}
 .summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.summary .stat .v{font-size:21px}
-.price-list{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.price{background:#f6f6f8;border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;gap:8px}
-.price span:last-child{font-weight:750}
+.summary .stat .v{font-size:20px}
 .empty{padding:18px 4px;text-align:center;color:#888;font-size:14px}
-@media (max-width:430px){
-  .row{grid-template-columns:1fr}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;margin-left:6px}
+.badge-pipe{background:#e8f0fe;color:#1a56db}
+.badge-sheet{background:#e6f4ea;color:#137333}
+@media (max-width:480px){
+  .row,.row3{grid-template-columns:1fr}
   .summary{grid-template-columns:1fr}
-  .price-list{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>🎨 Окраска профильной трубы</h1>
-  <div class="sub">Расчёт по ставке <b>750 ₽/м²</b>. Площадь считается по 4 наружным сторонам профиля.</div>
+  <h1>🎨 Калькулятор окраски</h1>
+  <div class="sub">Профильные трубы + листовые детали. Цена за м² настраивается.</div>
 
+  <!-- Ставка -->
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-      <strong>Добавь профиль</strong>
-      <span class="small" style="margin:0">до 3 размеров</span>
+    <div class="label">Цена за 1 м² окраски, ₽</div>
+    <input id="rateInput" type="text" inputmode="decimal" value="750" placeholder="750" oninput="onRateChange()">
+    <div class="small">Меняй ставку — все расчёты пересчитаются сразу.</div>
+  </div>
+
+  <!-- Добавление -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:4px">
+      <strong>Позиции</strong>
+      <span class="small" style="margin:0">до 6 шт</span>
     </div>
     <div id="items"></div>
     <div class="btns">
-      <button class="secondary" id="addBtn" onclick="addItem()">＋ Добавить профиль</button>
+      <button class="secondary" id="addPipeBtn" onclick="addItem('pipe')">＋ Профиль</button>
+      <button class="secondary" id="addSheetBtn" onclick="addItem('sheet')">＋ Лист</button>
       <button class="primary" onclick="clearAll()">Очистить</button>
     </div>
   </div>
 
+  <!-- Итог -->
   <div class="card">
     <strong>Итог</strong>
     <div class="summary">
-      <div class="stat"><div class="label">Общая длина</div><div class="v" id="totalLength">0 м</div></div>
       <div class="stat"><div class="label">Общая площадь</div><div class="v" id="totalArea">0 м²</div></div>
+      <div class="stat"><div class="label">Позиций</div><div class="v" id="totalCount">0</div></div>
     </div>
     <div class="total">
       <div class="small">Стоимость окраски</div>
       <div class="v" id="totalPrice">0 ₽</div>
     </div>
-    <div class="small">Формула: длина × [2 × (ширина + высота) / 1000] × 750 ₽.</div>
-  </div>
-
-  <div class="card">
-    <strong>Цена за 1 погонный метр</strong>
-    <div class="price-list" id="priceList"></div>
+    <div class="small" id="formulaHint">Формула профиля: длина × 2×(ш+в)/1000 × ставка.<br>Формула листа: (ш/1000)×(в/1000)×кол-во × ставка.</div>
   </div>
 </div>
 
 <script>
-const RATE = 750;
 const PROFILES = [
-  ["10×10",10,10],
-  ["15×15",15,15],
-  ["20×20",20,20],
-  ["25×25",25,25],
-  ["30×30",30,30],
-  ["40×20",40,20],
-  ["40×40",40,40],
-  ["50×25",50,25],
-  ["50×50",50,50],
-  ["60×60",60,60],
-  ["80×80",80,80]
+  ["10×10",10,10],["15×15",15,15],["20×20",20,20],["25×25",25,25],
+  ["30×30",30,30],["40×20",40,20],["40×40",40,40],["50×25",50,25],
+  ["50×50",50,50],["60×60",60,60],["80×80",80,80]
 ];
 
+let rate = 750;
 let items = [];
 
-function areaPerMeter(w,h){
-  return 2*(w+h)/1000;
-}
-function pricePerMeter(w,h){
-  return areaPerMeter(w,h)*RATE;
-}
 function money(n){
   return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:2}).format(n) + ' ₽';
 }
 function num(n){
-  return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:2}).format(n);
+  return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:3}).format(n);
 }
-function parseLength(v){
+function parseNum(v){
   return Number(String(v).replace(',', '.')) || 0;
 }
-function profileOptions(selected){
-  return PROFILES.map(([name,w,h]) => `<option value="${name}" ${name===selected?'selected':''}>${name} мм</option>`).join('');
-}
-function addItem(profile='20×20', length=''){
-  if(items.length>=3) return;
-  items.push({id:Date.now()+Math.random(),profile,length});
-  render();
-}
-function removeItem(id){
-  items = items.filter(x=>x.id!==id);
-  render();
-}
-function changeProfile(id,value){
-  const x=items.find(i=>i.id===id); if(x){x.profile=value; render();}
-}
-function changeLength(id,value){
-  const x=items.find(i=>i.id===id); if(x){x.length=value; calculate();}
-}
-function getProfile(name){return PROFILES.find(x=>x[0]===name) || PROFILES[2];}
-function calculate(){
-  let totalLength=0,totalArea=0,totalPrice=0;
-  items.forEach(x=>{
-    const [name,w,h]=getProfile(x.profile);
-    const len=parseLength(x.length);
-    const a=areaPerMeter(w,h)*len;
-    const p=pricePerMeter(w,h)*len;
-    totalLength+=len; totalArea+=a; totalPrice+=p;
-  });
-  document.getElementById('totalLength').textContent=num(totalLength)+' м';
-  document.getElementById('totalArea').textContent=num(totalArea)+' м²';
-  document.getElementById('totalPrice').textContent=money(totalPrice);
-}
-function render(){
-  const box=document.getElementById('items');
-  if(!items.length){
-    box.innerHTML='<div class="empty">Нажми «Добавить профиль» и укажи размер трубы и длину.</div>';
-  } else {
-    box.innerHTML=items.map((x,i)=>{
-      const [name,w,h]=getProfile(x.profile);
-      return `<div class="item">
-        <div class="item-head">
-          <div class="item-title">Профиль ${i+1}</div>
-          <button class="remove" onclick="removeItem(${x.id})">Удалить</button>
-        </div>
-        <div class="row">
-          <div><div class="label">Размер трубы</div><select onchange="changeProfile(${x.id},this.value)">${profileOptions(x.profile)}</select></div>
-          <div><div class="label">Длина, м</div><input inputmode="decimal" type="text" value="${x.length}" placeholder="Например 12,5" oninput="changeLength(${x.id},this.value)"></div>
-        </div>
-        <div class="rate">Площадь: <strong>${num(areaPerMeter(w,h))} м²/м</strong> · Цена: <strong>${money(pricePerMeter(w,h))}/м</strong></div>
-      </div>`;
-    }).join('');
-  }
-  document.getElementById('addBtn').disabled=items.length>=3;
-  document.getElementById('addBtn').style.opacity=items.length>=3?.45:1;
+
+function onRateChange(){
+  rate = parseNum(document.getElementById('rateInput').value);
+  if(rate < 0) rate = 0;
   calculate();
+  renderItemsOnly();
 }
-function clearAll(){
-  items=[]; render();
+
+function areaPipe(w,h){ return 2*(w+h)/1000; }          // м² на 1 пог.м
+function areaSheet(w,h,qty){ return (w/1000)*(h/1000)*qty; } // м²
+
+function addItem(type){
+  if(items.length >= 6) return;
+  if(type === 'pipe'){
+    items.push({id:Date.now()+Math.random(), type:'pipe', profile:'20×20', length:''});
+  } else {
+    items.push({id:Date.now()+Math.random(), type:'sheet', width:'', height:'', qty:'1'});
+  }
+  render();
 }
-function renderPriceList(){
-  document.getElementById('priceList').innerHTML=PROFILES.map(([name,w,h])=>
-    `<div class="price"><span>${name}</span><span>${money(pricePerMeter(w,h))}/м</span></div>`
+
+function removeItem(id){
+  items = items.filter(x => x.id !== id);
+  render();
+}
+
+function updateItem(id, field, value){
+  const x = items.find(i => i.id === id);
+  if(!x) return;
+  x[field] = value;
+  calculate();
+  // обновляем только строку площади/цены у этой позиции
+  const el = document.getElementById('rate-'+id);
+  if(el){
+    if(x.type === 'pipe'){
+      const [ ,w,h] = getProfile(x.profile);
+      const len = parseNum(x.length);
+      const a = areaPipe(w,h)*len;
+      el.innerHTML = `Площадь: <strong>${num(a)} м²</strong> · <strong>${money(a*rate)}</strong>`;
+    } else {
+      const a = areaSheet(parseNum(x.width), parseNum(x.height), parseNum(x.qty));
+      el.innerHTML = `Площадь: <strong>${num(a)} м²</strong> · <strong>${money(a*rate)}</strong>`;
+    }
+  }
+}
+
+function getProfile(name){
+  return PROFILES.find(x => x[0] === name) || PROFILES[2];
+}
+
+function profileOptions(selected){
+  return PROFILES.map(([name]) =>
+    `<option value="${name}" ${name===selected?'selected':''}>${name} мм</option>`
   ).join('');
 }
 
-renderPriceList();
-addItem();
+function calculate(){
+  let totalArea = 0;
+  items.forEach(x => {
+    if(x.type === 'pipe'){
+      const [,w,h] = getProfile(x.profile);
+      totalArea += areaPipe(w,h) * parseNum(x.length);
+    } else {
+      totalArea += areaSheet(parseNum(x.width), parseNum(x.height), parseNum(x.qty));
+    }
+  });
+  document.getElementById('totalArea').textContent = num(totalArea) + ' м²';
+  document.getElementById('totalCount').textContent = items.length;
+  document.getElementById('totalPrice').textContent = money(totalArea * rate);
+}
+
+function renderItemsOnly(){
+  // пересчитать подписи у всех позиций при смене ставки
+  items.forEach(x => {
+    const el = document.getElementById('rate-'+x.id);
+    if(!el) return;
+    if(x.type === 'pipe'){
+      const [,w,h] = getProfile(x.profile);
+      const a = areaPipe(w,h) * parseNum(x.length);
+      el.innerHTML = `Площадь: <strong>${num(a)} м²</strong> · <strong>${money(a*rate)}</strong>`;
+    } else {
+      const a = areaSheet(parseNum(x.width), parseNum(x.height), parseNum(x.qty));
+      el.innerHTML = `Площадь: <strong>${num(a)} м²</strong> · <strong>${money(a*rate)}</strong>`;
+    }
+  });
+}
+
+function render(){
+  const box = document.getElementById('items');
+  if(!items.length){
+    box.innerHTML = '<div class="empty">Добавь профиль или листовую деталь</div>';
+  } else {
+    box.innerHTML = items.map((x,i) => {
+      if(x.type === 'pipe'){
+        const [,w,h] = getProfile(x.profile);
+        const a = areaPipe(w,h) * parseNum(x.length);
+        return `<div class="item">
+          <div class="item-head">
+            <div class="item-title">Профиль ${i+1}<span class="badge badge-pipe">труба</span></div>
+            <button class="remove" onclick="removeItem(${x.id})">Удалить</button>
+          </div>
+          <div class="row">
+            <div><div class="label">Размер</div>
+              <select onchange="updateItem(${x.id},'profile',this.value)">${profileOptions(x.profile)}</select>
+            </div>
+            <div><div class="label">Длина, м</div>
+              <input inputmode="decimal" type="text" value="${x.length}" placeholder="12,5"
+                oninput="updateItem(${x.id},'length',this.value)">
+            </div>
+          </div>
+          <div class="rate-line" id="rate-${x.id}">Площадь: <strong>${num(a)} м²</strong> · <strong>${money(a*rate)}</strong></div>
+        </div>`;
+      } else {
+        const a = areaSheet(parseNum(x.width), parseNum(x.height), parseNum(x.qty));
+        return `<div class="item">
+          <div class="item-head">
+            <div class="item-title">Лист ${i+1}<span class="badge badge-sheet">лист</span></div>
+            <button class="remove" onclick="removeItem(${x.id})">Удалить</button>
+          </div>
+          <div class="row3">
+            <div><div class="label">Ширина, мм</div>
+              <input inputmode="decimal" type="text" value="${x.width}" placeholder="1000"
+                oninput="updateItem(${x.id},'width',this.value)">
+            </div>
+            <div><div class="label">Высота, мм</div>
+              <input inputmode="decimal" type="text" value="${x.height}" placeholder="500"
+                oninput="updateItem(${x.id},'height',this.value)">
+            </div>
+            <div><div class="label">Кол-во</div>
+              <input inputmode="decimal" type="text" value="${x.qty}" placeholder="1"
+                oninput="updateItem(${x.id},'qty',this.value)">
+            </div>
+          </div>
+          <div class="rate-line" id="rate-${x.id}">Площадь: <strong>${num(a)} м²</strong> · <strong>${money(a*rate)}</strong></div>
+        </div>`;
+      }
+    }).join('');
+  }
+
+  const full = items.length >= 6;
+  document.getElementById('addPipeBtn').disabled = full;
+  document.getElementById('addSheetBtn').disabled = full;
+  document.getElementById('addPipeBtn').style.opacity = full ? .45 : 1;
+  document.getElementById('addSheetBtn').style.opacity = full ? .45 : 1;
+
+  calculate();
+}
+
+function clearAll(){
+  items = [];
+  render();
+}
+
+render();
 </script>
 </body>
 </html>

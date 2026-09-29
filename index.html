@@ -1,1 +1,188 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<title>Калькулятор — профильная труба</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#f2f2f7}
+*{box-sizing:border-box}
+body{margin:0}
+.wrap{max-width:620px;margin:auto;padding:18px 14px 40px}
+h1{font-size:28px;line-height:1.12;margin:8px 4px 6px;letter-spacing:-.7px}
+.sub{color:#777;font-size:14px;margin:0 4px 18px}
+.card{background:#fff;border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 2px 12px #0000000b}
+.label{font-size:13px;color:#777;margin-bottom:6px}
+input,select{width:100%;border:1px solid #ddd;border-radius:13px;padding:14px;font-size:17px;outline:none;background:#fff;color:#111}
+input:focus,select:focus{border-color:#777}
+.row{display:grid;grid-template-columns:1.05fr .95fr;gap:10px;align-items:end;margin-top:12px}
+.btns{display:flex;gap:10px;margin-top:14px}
+button{border:0;border-radius:14px;padding:14px;font-size:16px;font-weight:700;cursor:pointer}
+.primary{background:#111;color:#fff;flex:1}
+.secondary{background:#e7e7eb;color:#111;flex:1}
+.result{display:grid;gap:10px;margin-top:14px}
+.stat{background:#f6f6f8;border-radius:14px;padding:13px 14px}
+.stat .v{font-size:24px;font-weight:800;margin-top:2px}
+.total{background:#111;color:#fff;border-radius:16px;padding:16px;margin-top:14px}
+.total .v{font-size:36px;font-weight:850;letter-spacing:-1px;margin-top:2px}
+.total .small{color:#bbb}
+.small{font-size:12px;color:#777;margin-top:8px;line-height:1.4}
+.item{border:1px solid #e5e5e7;border-radius:16px;padding:14px;margin-top:11px}
+.item-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.item-title{font-size:16px;font-weight:750}
+.remove{background:#fff0f0;color:#b00020;padding:9px 11px;border-radius:11px;font-size:13px}
+.rate{font-size:13px;color:#777;margin-top:8px}
+.rate strong{color:#111}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.summary .stat .v{font-size:21px}
+.price-list{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.price{background:#f6f6f8;border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;gap:8px}
+.price span:last-child{font-weight:750}
+.empty{padding:18px 4px;text-align:center;color:#888;font-size:14px}
+@media (max-width:430px){
+  .row{grid-template-columns:1fr}
+  .summary{grid-template-columns:1fr}
+  .price-list{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎨 Окраска профильной трубы</h1>
+  <div class="sub">Расчёт по ставке <b>750 ₽/м²</b>. Площадь считается по 4 наружным сторонам профиля.</div>
 
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <strong>Добавь профиль</strong>
+      <span class="small" style="margin:0">до 3 размеров</span>
+    </div>
+    <div id="items"></div>
+    <div class="btns">
+      <button class="secondary" id="addBtn" onclick="addItem()">＋ Добавить профиль</button>
+      <button class="primary" onclick="clearAll()">Очистить</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <strong>Итог</strong>
+    <div class="summary">
+      <div class="stat"><div class="label">Общая длина</div><div class="v" id="totalLength">0 м</div></div>
+      <div class="stat"><div class="label">Общая площадь</div><div class="v" id="totalArea">0 м²</div></div>
+    </div>
+    <div class="total">
+      <div class="small">Стоимость окраски</div>
+      <div class="v" id="totalPrice">0 ₽</div>
+    </div>
+    <div class="small">Формула: длина × [2 × (ширина + высота) / 1000] × 750 ₽.</div>
+  </div>
+
+  <div class="card">
+    <strong>Цена за 1 погонный метр</strong>
+    <div class="price-list" id="priceList"></div>
+  </div>
+</div>
+
+<script>
+const RATE = 750;
+const PROFILES = [
+  ["10×10",10,10],
+  ["15×15",15,15],
+  ["20×20",20,20],
+  ["25×25",25,25],
+  ["30×30",30,30],
+  ["40×20",40,20],
+  ["40×40",40,40],
+  ["50×25",50,25],
+  ["50×50",50,50],
+  ["60×60",60,60],
+  ["80×80",80,80]
+];
+
+let items = [];
+
+function areaPerMeter(w,h){
+  return 2*(w+h)/1000;
+}
+function pricePerMeter(w,h){
+  return areaPerMeter(w,h)*RATE;
+}
+function money(n){
+  return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:2}).format(n) + ' ₽';
+}
+function num(n){
+  return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:2}).format(n);
+}
+function parseLength(v){
+  return Number(String(v).replace(',', '.')) || 0;
+}
+function profileOptions(selected){
+  return PROFILES.map(([name,w,h]) => `<option value="${name}" ${name===selected?'selected':''}>${name} мм</option>`).join('');
+}
+function addItem(profile='20×20', length=''){
+  if(items.length>=3) return;
+  items.push({id:Date.now()+Math.random(),profile,length});
+  render();
+}
+function removeItem(id){
+  items = items.filter(x=>x.id!==id);
+  render();
+}
+function changeProfile(id,value){
+  const x=items.find(i=>i.id===id); if(x){x.profile=value; render();}
+}
+function changeLength(id,value){
+  const x=items.find(i=>i.id===id); if(x){x.length=value; calculate();}
+}
+function getProfile(name){return PROFILES.find(x=>x[0]===name) || PROFILES[2];}
+function calculate(){
+  let totalLength=0,totalArea=0,totalPrice=0;
+  items.forEach(x=>{
+    const [name,w,h]=getProfile(x.profile);
+    const len=parseLength(x.length);
+    const a=areaPerMeter(w,h)*len;
+    const p=pricePerMeter(w,h)*len;
+    totalLength+=len; totalArea+=a; totalPrice+=p;
+  });
+  document.getElementById('totalLength').textContent=num(totalLength)+' м';
+  document.getElementById('totalArea').textContent=num(totalArea)+' м²';
+  document.getElementById('totalPrice').textContent=money(totalPrice);
+}
+function render(){
+  const box=document.getElementById('items');
+  if(!items.length){
+    box.innerHTML='<div class="empty">Нажми «Добавить профиль» и укажи размер трубы и длину.</div>';
+  } else {
+    box.innerHTML=items.map((x,i)=>{
+      const [name,w,h]=getProfile(x.profile);
+      return `<div class="item">
+        <div class="item-head">
+          <div class="item-title">Профиль ${i+1}</div>
+          <button class="remove" onclick="removeItem(${x.id})">Удалить</button>
+        </div>
+        <div class="row">
+          <div><div class="label">Размер трубы</div><select onchange="changeProfile(${x.id},this.value)">${profileOptions(x.profile)}</select></div>
+          <div><div class="label">Длина, м</div><input inputmode="decimal" type="text" value="${x.length}" placeholder="Например 12,5" oninput="changeLength(${x.id},this.value)"></div>
+        </div>
+        <div class="rate">Площадь: <strong>${num(areaPerMeter(w,h))} м²/м</strong> · Цена: <strong>${money(pricePerMeter(w,h))}/м</strong></div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('addBtn').disabled=items.length>=3;
+  document.getElementById('addBtn').style.opacity=items.length>=3?.45:1;
+  calculate();
+}
+function clearAll(){
+  items=[]; render();
+}
+function renderPriceList(){
+  document.getElementById('priceList').innerHTML=PROFILES.map(([name,w,h])=>
+    `<div class="price"><span>${name}</span><span>${money(pricePerMeter(w,h))}/м</span></div>`
+  ).join('');
+}
+
+renderPriceList();
+addItem();
+</script>
+</body>
+</html>
